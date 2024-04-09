@@ -3,6 +3,7 @@ package com.sung.myapplication;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.WallpaperManager;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -12,12 +13,18 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
     Button buttonSelectImage;
+    Button buttonChangeWallpaper;
     ImageView imageViewSelectedImage;
+    Bitmap imageBitmap = null;
+
+    boolean isImageSet = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,12 +32,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         buttonSelectImage = findViewById(R.id.buttonSelectImage);
+        buttonChangeWallpaper = findViewById(R.id.buttonChangeWallpaper);
         imageViewSelectedImage = findViewById(R.id.imageViewSelectedImage);
 
         buttonSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 selectImage();
+            }
+        });
+        buttonChangeWallpaper.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isImageSet) {
+                    try {
+                        changeWallpaper(imageBitmap);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "!!Select Image first!!", Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
@@ -46,8 +68,9 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     InputStream inputStream = resolver.openInputStream(fileUri);
-                    Bitmap imageBitmap = BitmapFactory.decodeStream(inputStream);
+                    imageBitmap = BitmapFactory.decodeStream(inputStream);
                     imageViewSelectedImage.setImageBitmap(imageBitmap);
+                    isImageSet = true;
 
                     inputStream.close();
                 } catch (Exception e) {
@@ -63,5 +86,11 @@ public class MainActivity extends AppCompatActivity {
         intent.setAction(Intent.ACTION_GET_CONTENT);
 
         startActivityForResult(intent, 101);
+    }
+
+    public void changeWallpaper(Bitmap imageBitmap) throws IOException {
+        WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
+        wallpaperManager.setBitmap(imageBitmap);
+        Toast.makeText(this, "Wallpaper changed.", Toast.LENGTH_LONG).show();
     }
 }
