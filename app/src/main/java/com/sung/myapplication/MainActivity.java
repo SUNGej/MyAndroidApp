@@ -2,6 +2,7 @@ package com.sung.myapplication;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 
 import android.app.WallpaperManager;
 import android.content.ContentResolver;
@@ -10,9 +11,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -21,8 +24,10 @@ import java.io.InputStream;
 public class MainActivity extends AppCompatActivity {
     Button buttonSelectImage;
     Button buttonChangeWallpaper;
+    TextView textViewSelectedDirectory;
     ImageView imageViewSelectedImage;
     Bitmap imageBitmap = null;
+    DocumentFile directorySelected = null;
 
     boolean isImageSet = false;
 
@@ -33,14 +38,16 @@ public class MainActivity extends AppCompatActivity {
 
         buttonSelectImage = findViewById(R.id.buttonSelectImage);
         buttonChangeWallpaper = findViewById(R.id.buttonChangeWallpaper);
+        textViewSelectedDirectory = findViewById(R.id.textViewSelectedDirectory);
         imageViewSelectedImage = findViewById(R.id.imageViewSelectedImage);
 
         buttonSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                selectImage();
+                selectDirectory();
             }
         });
+        /*
         buttonChangeWallpaper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -55,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+         */
     }
 
     @Override
@@ -78,14 +86,28 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+        if (requestCode == 102) {
+            if (resultCode == RESULT_OK) {
+                Uri uri = data.getData();
+                directorySelected = DocumentFile.fromTreeUri(this, uri);
+                DocumentFile[] directoryFiles = directorySelected.listFiles();
+                for (int i = 0; i < directoryFiles.length; i++) {
+                    Log.d("DocumentFile", directoryFiles[i].getName());
+                }
+                textViewSelectedDirectory.setText(directorySelected.getName());
+            }
+        }
     }
 
-    public void selectImage() {
+    public void selectDirectory() {
         Intent intent = new Intent();
+        /*
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-
         startActivityForResult(intent, 101);
+        */
+        intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        startActivityForResult(intent, 102);
     }
 
     public void changeWallpaper(Bitmap imageBitmap) throws IOException {

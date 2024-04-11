@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Select Image" />
+            android:text="Select Directory" />
 
         <Button
             android:id="@+id/buttonChangeWallpaper"
@@ -26,6 +26,13 @@
             android:layout_weight="1"
             android:text="Change Wallpaper" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/textViewSelectedDirectory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Selected Directory"
+        android:textSize="26sp" />
 
     <ImageView
         android:id="@+id/imageViewSelectedImage"
