@@ -20,14 +20,19 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     Button buttonSelectImage;
     Button buttonChangeWallpaper;
+    Button buttonSelectRandom;
     TextView textViewSelectedDirectory;
     ImageView imageViewSelectedImage;
     Bitmap imageBitmap = null;
     DocumentFile directorySelected = null;
+    ArrayList<DocumentFile> imageFiles = null;
+    ArrayList<Uri> imageUris = null;
 
     boolean isImageSet = false;
 
@@ -37,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         buttonSelectImage = findViewById(R.id.buttonSelectImage);
+        buttonSelectRandom = findViewById(R.id.buttonSelectRandom);
         buttonChangeWallpaper = findViewById(R.id.buttonChangeWallpaper);
         textViewSelectedDirectory = findViewById(R.id.textViewSelectedDirectory);
         imageViewSelectedImage = findViewById(R.id.imageViewSelectedImage);
@@ -47,6 +53,17 @@ public class MainActivity extends AppCompatActivity {
                 selectDirectory();
             }
         });
+        buttonSelectRandom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (imageUris != null && !imageUris.isEmpty()) {
+                    selectRandom(imageUris);
+                } else {
+                    Toast.makeText(MainActivity.this, "!!Select directory contains Image file!!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         /*
         buttonChangeWallpaper.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,6 +112,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("DocumentFile", directoryFiles[i].getName());
                 }
                 textViewSelectedDirectory.setText(directorySelected.getName());
+                imageFiles = getImageFilesOnly(directoryFiles);
+                for (int i = 0; i < imageFiles.size(); i++) {
+                    Log.d("imageFiles", imageFiles.get(i).getName()+", "+imageFiles.get(i).getType());
+                }
+                imageUris = new ArrayList<Uri>(imageFiles.size());
+                for (int i = 0; i < imageFiles.size(); i++) {
+                    imageUris.add(imageFiles.get(i).getUri());
+                    Log.d("uris", imageUris.get(i).toString());
+                }
             }
         }
     }
@@ -110,9 +136,38 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 102);
     }
 
+    public ArrayList<DocumentFile> getImageFilesOnly(DocumentFile[] files) {
+        ArrayList<DocumentFile> imageFiles = new ArrayList<DocumentFile>(0);
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].isFile() && files[i].getType().contains("image")) {
+                imageFiles.add(files[i]);
+            }
+        }
+        return imageFiles;
+    }
+
     public void changeWallpaper(Bitmap imageBitmap) throws IOException {
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
         wallpaperManager.setBitmap(imageBitmap);
         Toast.makeText(this, "Wallpaper changed.", Toast.LENGTH_LONG).show();
+    }
+
+    public void selectRandom(ArrayList<Uri> imageUris) {
+        Random random = new Random();
+        int randomIndex = random.nextInt(imageUris.size());
+        Uri fileUri = imageUris.get(randomIndex);
+        Log.d("SelectRandom", fileUri.toString());
+
+        ContentResolver resolver = getContentResolver();
+        try {
+            InputStream inputStream = resolver.openInputStream(fileUri);
+            imageBitmap = BitmapFactory.decodeStream(inputStream);
+            imageViewSelectedImage.setImageBitmap(imageBitmap);
+            isImageSet = true;
+
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
