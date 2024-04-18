@@ -63,8 +63,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        /*
         buttonChangeWallpaper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-         */
     }
 
     @Override
@@ -87,53 +84,27 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 101) {
             if (resultCode == RESULT_OK) {
-                Uri fileUri = data.getData();
-
-                ContentResolver resolver = getContentResolver();
-
-                try {
-                    InputStream inputStream = resolver.openInputStream(fileUri);
-                    imageBitmap = BitmapFactory.decodeStream(inputStream);
-                    imageViewSelectedImage.setImageBitmap(imageBitmap);
-                    isImageSet = true;
-
-                    inputStream.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        if (requestCode == 102) {
-            if (resultCode == RESULT_OK) {
-                Uri uri = data.getData();
-                directorySelected = DocumentFile.fromTreeUri(this, uri);
-                DocumentFile[] directoryFiles = directorySelected.listFiles();
-                for (int i = 0; i < directoryFiles.length; i++) {
-                    Log.d("DocumentFile", directoryFiles[i].getName());
-                }
-                textViewSelectedDirectory.setText(directorySelected.getName());
-                imageFiles = getImageFilesOnly(directoryFiles);
-                for (int i = 0; i < imageFiles.size(); i++) {
-                    Log.d("imageFiles", imageFiles.get(i).getName()+", "+imageFiles.get(i).getType());
-                }
-                imageUris = new ArrayList<Uri>(imageFiles.size());
-                for (int i = 0; i < imageFiles.size(); i++) {
-                    imageUris.add(imageFiles.get(i).getUri());
-                    Log.d("uris", imageUris.get(i).toString());
-                }
+                processData(data);
             }
         }
     }
 
     public void selectDirectory() {
         Intent intent = new Intent();
-        /*
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, 101);
-        */
         intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        startActivityForResult(intent, 102);
+        startActivityForResult(intent, 101);
+    }
+
+    public void processData(Intent data) {
+        Uri uri = data.getData();
+        directorySelected = DocumentFile.fromTreeUri(this, uri);
+        DocumentFile[] directoryFiles = directorySelected.listFiles();
+        textViewSelectedDirectory.setText(uri.getPath());
+        imageFiles = getImageFilesOnly(directoryFiles);
+        imageUris = new ArrayList<Uri>(imageFiles.size());
+        for (int i = 0; i < imageFiles.size(); i++) {
+            imageUris.add(imageFiles.get(i).getUri());
+        }
     }
 
     public ArrayList<DocumentFile> getImageFilesOnly(DocumentFile[] files) {
@@ -156,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         Random random = new Random();
         int randomIndex = random.nextInt(imageUris.size());
         Uri fileUri = imageUris.get(randomIndex);
-        Log.d("SelectRandom", fileUri.toString());
 
         ContentResolver resolver = getContentResolver();
         try {
