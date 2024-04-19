@@ -85,17 +85,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        checkPermission();
         loadData();
-    }
-
-    public void checkPermission() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            // 권한이 없는 경우 권한 요청
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_EXTERNAL_STORAGE);
-        }
-        Log.d("Permission", "Permission check triggered.");
     }
 
     public void loadData() {
@@ -116,23 +106,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_EXTERNAL_STORAGE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("Permission", "Permission granted.");
-            } else {
-                Toast.makeText(this, "This App need permission : READ_EXTERNAL_STORAGE", Toast.LENGTH_LONG);
-                Log.d("Permission", "Permission denied.");
-            }
-        }
-    }
-
     public void selectDirectory() {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION); // 권한 부여 플래그 추가
         startActivityForResult(intent, 101);
     }
 
