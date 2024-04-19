@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
     Button buttonSelectImage;
     Button buttonChangeWallpaper;
     Button buttonSelectRandom;
