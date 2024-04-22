@@ -9,18 +9,26 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     Button buttonSelectImage;
@@ -28,12 +36,14 @@ public class MainActivity extends AppCompatActivity {
     Button buttonSelectRandom;
     TextView textViewSelectedDirectory;
     ImageView imageViewSelectedImage;
+    Switch switchDailyWallpaper;
     Bitmap imageBitmap = null;
     DocumentFile directorySelected = null;
     ArrayList<DocumentFile> imageFiles = null;
     ArrayList<Uri> imageUris = null;
 
     boolean isImageSet = false;
+    boolean isSwitchOn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
         buttonChangeWallpaper = findViewById(R.id.buttonChangeWallpaper);
         textViewSelectedDirectory = findViewById(R.id.textViewSelectedDirectory);
         imageViewSelectedImage = findViewById(R.id.imageViewSelectedImage);
+        switchDailyWallpaper = findViewById(R.id.switchDailyWallpaper);
+
+        loadData();
 
         buttonSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,7 +91,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        loadData();
+        switchDailyWallpaper.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                MySharedPreferencesHelper.saveSwitchState(MainActivity.this, isChecked);
+                if (isChecked) {
+                    scheduleWallpaperChange(); // 작업 스케줄링
+                } else {
+                    cancelWallpaperChange(); // 작업 취소
+                }
+            }
+        });
     }
 
     public void loadData() {
@@ -86,6 +109,8 @@ public class MainActivity extends AppCompatActivity {
             directorySelected = DocumentFile.fromTreeUri(this, MySharedPreferencesHelper.loadSelectedDirectoryUri(this));
             textViewSelectedDirectory.setText(directorySelected.getUri().toString());
             imageUris = MySharedPreferencesHelper.loadImageUris(this);
+            isSwitchOn = MySharedPreferencesHelper.loadSwitchState(this);
+            switchDailyWallpaper.setChecked(isSwitchOn);
         }
     }
 
@@ -134,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
     public void changeWallpaper(Bitmap imageBitmap) throws IOException {
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
         wallpaperManager.setBitmap(imageBitmap);
-        Toast.makeText(this, "Wallpaper changed.", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Wallpaper changed.", Toast.LENGTH_SHORT).show();
     }
 
     public void selectRandom(ArrayList<Uri> imageUris) {
@@ -153,5 +178,28 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void scheduleWallpaperChange() {
+        PeriodicWorkRequest changeWallpaperRequest =
+                new PeriodicWorkRequest.Builder(ChangeWallpaperWorker.class, 1, TimeUnit.DAYS)
+                        .setInitialDelay(calculateInitialDelay(), TimeUnit.MILLISECONDS)
+                        .build();
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork("myDailyWallpaper", ExistingPeriodicWorkPolicy.UPDATE, changeWallpaperRequest);
+
+        Toast.makeText(this, "Daily Wallpaper Activated!", Toast.LENGTH_SHORT).show();
+    }
+
+    public void cancelWallpaperChange() {
+        WorkManager.getInstance(this).cancelUniqueWork("myDailyWallpaper");
+
+        Toast.makeText(this, "Daily Wallpaper Cancelled.", Toast.LENGTH_SHORT).show();
+    }
+
+    private long calculateInitialDelay() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay();
+        return Duration.between(now, nextMidnight).toMillis();
     }
 }
