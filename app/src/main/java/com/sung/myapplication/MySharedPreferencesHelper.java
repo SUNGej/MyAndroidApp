@@ -9,6 +9,7 @@ import java.util.ArrayList;
 public class MySharedPreferencesHelper {
     private static final String PREF_SELECTED_FOLDER_URI = "selectedFolderUri";
     private static final String PREF_SELECTED_IMAGE_URIS = "selectedImageUris";
+    private static final String PREF_KEY_SWITCH_STATE = "SwitchState";
 
     public static void saveSelectedDirectoryUri(Context context, Uri folderUri) {
         SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -48,5 +49,17 @@ public class MySharedPreferencesHelper {
             }
         }
         return imageUris;
+    }
+
+    public static void saveSwitchState(Context context, boolean isOn) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(PREF_KEY_SWITCH_STATE, isOn);
+        editor.apply();
+    }
+
+    public static boolean loadSwitchState(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        return prefs.getBoolean(PREF_KEY_SWITCH_STATE, false);
     }
 }

@@ -39,7 +39,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Selected Directory"
-        android:textSize="16sp" />
+        android:textSize="24sp" />
+
+    <Switch
+        android:id="@+id/switchDailyWallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Daily Wallpaper"
+        android:textSize="24sp" />
 
     <ImageView
         android:id="@+id/imageViewSelectedImage"
