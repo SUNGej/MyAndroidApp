@@ -24,18 +24,15 @@ public class ChangeWallpaperWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        // 이미지 URI 로드
         ArrayList<Uri> imageUris = MySharedPreferencesHelper.loadImageUris(getApplicationContext());
         if (imageUris == null || imageUris.isEmpty()) {
             Log.e("WallpaperWorker", "No images available");
             return Result.failure();
         }
 
-        // 랜덤 이미지 선택
         Random random = new Random();
         Uri selectedImageUri = imageUris.get(random.nextInt(imageUris.size()));
 
-        // 이미지 설정
         try {
             InputStream inputStream = getApplicationContext().getContentResolver().openInputStream(selectedImageUri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);

@@ -60,6 +60,6 @@ public class MySharedPreferencesHelper {
 
     public static boolean loadSwitchState(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        return prefs.getBoolean(PREF_KEY_SWITCH_STATE, false); // 기본값은 false
+        return prefs.getBoolean(PREF_KEY_SWITCH_STATE, false);
     }
 }
