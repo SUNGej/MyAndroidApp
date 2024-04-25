@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     Button buttonSelectImage;
     Button buttonChangeWallpaper;
     Button buttonSelectRandom;
+    Button buttonReset;
     TextView textViewSelectedDirectory;
     ImageView imageViewSelectedImage;
     Switch switchDailyWallpaper;
@@ -52,9 +53,11 @@ public class MainActivity extends AppCompatActivity {
         buttonSelectImage = findViewById(R.id.buttonSelectImage);
         buttonSelectRandom = findViewById(R.id.buttonSelectRandom);
         buttonChangeWallpaper = findViewById(R.id.buttonChangeWallpaper);
+        buttonReset = findViewById(R.id.buttonReset);
         textViewSelectedDirectory = findViewById(R.id.textViewSelectedDirectory);
         imageViewSelectedImage = findViewById(R.id.imageViewSelectedImage);
         switchDailyWallpaper = findViewById(R.id.switchDailyWallpaper);
+        switchDailyWallpaper.setClickable(false);
 
         loadData();
 
@@ -87,12 +90,24 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Wallpaper changed.", Toast.LENGTH_SHORT).show();
             }
         });
+        buttonReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (directorySelected == null && imageUris == null) {
+                    Toast.makeText(MainActivity.this, "No selection now", Toast.LENGTH_SHORT).show();
+                } else {
+                    MySharedPreferencesHelper.resetData(getApplicationContext());
+                    resetData();
+                    Toast.makeText(MainActivity.this, "Selection reset", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         switchDailyWallpaper.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                MySharedPreferencesHelper.saveSwitchState(MainActivity.this, isChecked);
-                if (isChecked) {
+                if (isChecked && directorySelected != null && imageUris != null) {
+                    MySharedPreferencesHelper.saveSwitchState(MainActivity.this, isChecked);
                     scheduleWallpaperChange();
                 } else {
                     cancelWallpaperChange();
@@ -138,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < imageFiles.size(); i++) {
             imageUris.add(imageFiles.get(i).getUri());
         }
+        setSwitchDailyWallpaperClickable();
 
         MySharedPreferencesHelper.saveSelectedDirectoryUri(MainActivity.this, directorySelected.getUri());
         MySharedPreferencesHelper.saveImageUris(MainActivity.this, imageUris);
@@ -192,5 +208,26 @@ public class MainActivity extends AppCompatActivity {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay();
         return Duration.between(now, nextMidnight).toMillis();
+    }
+
+    public void resetData() {
+        directorySelected = null;
+        imageUris = null;
+        imageBitmap = null;
+        imageFiles = null;
+        isImageSet = false;
+        textViewSelectedDirectory.setText(null);
+        switchDailyWallpaper.setChecked(false);
+        isSwitchOn = false;
+        imageViewSelectedImage.setImageResource(R.drawable.ic_launcher_foreground);
+        setSwitchDailyWallpaperClickable();
+    }
+
+    public void setSwitchDailyWallpaperClickable() {
+        if (imageUris == null) {
+            switchDailyWallpaper.setClickable(false);
+        } else if (imageUris.size() > 0) {
+            switchDailyWallpaper.setClickable(true);
+        }
     }
 }

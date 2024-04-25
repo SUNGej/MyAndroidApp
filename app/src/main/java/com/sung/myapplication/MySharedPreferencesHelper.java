@@ -62,4 +62,11 @@ public class MySharedPreferencesHelper {
         SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         return prefs.getBoolean(PREF_KEY_SWITCH_STATE, false);
     }
+
+    public static void resetData(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
+        editor.apply();
+    }
 }
