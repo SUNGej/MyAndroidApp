@@ -10,6 +10,7 @@ public class MySharedPreferencesHelper {
     private static final String PREF_SELECTED_FOLDER_URI = "selectedFolderUri";
     private static final String PREF_SELECTED_IMAGE_URIS = "selectedImageUris";
     private static final String PREF_KEY_SWITCH_STATE = "SwitchState";
+    private static final String PREF_RADIO_GROUP_STATE = "RadioGroupState";
 
     public static void saveSelectedDirectoryUri(Context context, Uri folderUri) {
         SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -61,6 +62,18 @@ public class MySharedPreferencesHelper {
     public static boolean loadSwitchState(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         return prefs.getBoolean(PREF_KEY_SWITCH_STATE, false);
+    }
+
+    public static void saveRadioGroupState(Context context, int checkedId) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(PREF_RADIO_GROUP_STATE, checkedId);
+        editor.apply();
+    }
+
+    public static int loadRadioGroupState(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        return prefs.getInt(PREF_RADIO_GROUP_STATE, 0);
     }
 
     public static void resetData(Context context) {

@@ -6,10 +6,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +41,10 @@ public class MainActivity extends AppCompatActivity {
     TextView textViewSelectedDirectory;
     ImageView imageViewSelectedImage;
     Switch switchDailyWallpaper;
+    RadioGroup radioGroupSelectScreen;
+    RadioButton radioButtonHome;
+    RadioButton radioButtonLock;
+    RadioButton radioButtonBoth;
     Bitmap imageBitmap = null;
     DocumentFile directorySelected = null;
     ArrayList<DocumentFile> imageFiles = null;
@@ -58,6 +66,10 @@ public class MainActivity extends AppCompatActivity {
         imageViewSelectedImage = findViewById(R.id.imageViewSelectedImage);
         switchDailyWallpaper = findViewById(R.id.switchDailyWallpaper);
         switchDailyWallpaper.setClickable(false);
+        radioGroupSelectScreen = findViewById(R.id.radioGroupSelectScreen);
+        radioButtonHome = findViewById(R.id.radioButtonHome);
+        radioButtonLock = findViewById(R.id.radioButtonLock);
+        radioButtonBoth = findViewById(R.id.radioButtonBoth);
 
         loadData();
 
