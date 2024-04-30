@@ -73,7 +73,7 @@ public class MySharedPreferencesHelper {
 
     public static int loadRadioGroupState(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        return prefs.getInt(PREF_RADIO_GROUP_STATE, 0);
+        return prefs.getInt(PREF_RADIO_GROUP_STATE, -1);
     }
 
     public static void resetData(Context context) {

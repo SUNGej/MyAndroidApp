@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     boolean isImageSet = false;
     boolean isSwitchOn = false;
+    int radioGroupCheckedId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,7 +137,11 @@ public class MainActivity extends AppCompatActivity {
             imageUris = MySharedPreferencesHelper.loadImageUris(this);
             isSwitchOn = MySharedPreferencesHelper.loadSwitchState(this);
             switchDailyWallpaper.setChecked(isSwitchOn);
+            radioGroupCheckedId = MySharedPreferencesHelper.loadRadioGroupState(this);
+            setRadioButtonsClickable(!isSwitchOn);
         }
+        setSwitchDailyWallpaperClickable();
+        setRadioGroupSelectScreenState();
     }
 
     @Override
@@ -207,11 +213,17 @@ public class MainActivity extends AppCompatActivity {
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork("myDailyWallpaper", ExistingPeriodicWorkPolicy.UPDATE, changeWallpaperRequest);
 
+        MySharedPreferencesHelper.saveRadioGroupState(this, radioGroupSelectScreen.getCheckedRadioButtonId());
+        setRadioButtonsClickable(false);
+
         Toast.makeText(this, "Daily Wallpaper Activated!", Toast.LENGTH_SHORT).show();
     }
 
     public void cancelWallpaperChange() {
         WorkManager.getInstance(this).cancelUniqueWork("myDailyWallpaper");
+
+        MySharedPreferencesHelper.saveSwitchState(this, false);
+        setRadioButtonsClickable(true);
 
         Toast.makeText(this, "Daily Wallpaper Cancelled.", Toast.LENGTH_SHORT).show();
     }
@@ -238,8 +250,35 @@ public class MainActivity extends AppCompatActivity {
     public void setSwitchDailyWallpaperClickable() {
         if (imageUris == null) {
             switchDailyWallpaper.setClickable(false);
-        } else if (imageUris.size() > 0) {
+            switchDailyWallpaper.setTextColor(Color.GRAY);
+        } else {
             switchDailyWallpaper.setClickable(true);
+            switchDailyWallpaper.setTextColor(Color.BLACK);
+        }
+    }
+
+    public void setRadioGroupSelectScreenState() {
+        if (radioGroupCheckedId == radioButtonHome.getId()) {
+            radioButtonHome.setChecked(true);
+        } else if (radioGroupCheckedId == radioButtonLock.getId()) {
+            radioButtonLock.setChecked(true);
+        } else if (radioGroupCheckedId == radioButtonBoth.getId() || radioGroupCheckedId == -1) {
+            radioButtonBoth.setChecked(true);
+        }
+    }
+
+    public void setRadioButtonsClickable(boolean clickable) {
+        radioButtonHome.setClickable(clickable);
+        radioButtonLock.setClickable(clickable);
+        radioButtonBoth.setClickable(clickable);
+        if (clickable) {
+            radioButtonHome.setTextColor(Color.BLACK);
+            radioButtonLock.setTextColor(Color.BLACK);
+            radioButtonBoth.setTextColor(Color.BLACK);
+        } else {
+            radioButtonHome.setTextColor(Color.GRAY);
+            radioButtonLock.setTextColor(Color.GRAY);
+            radioButtonBoth.setTextColor(Color.GRAY);
         }
     }
 }

@@ -70,21 +70,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Home" />
+                android:text="Home"
+                android:textStyle="bold" />
 
             <RadioButton
                 android:id="@+id/radioButtonLock"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Lock" />
+                android:text="Lock"
+                android:textStyle="bold" />
 
             <RadioButton
                 android:id="@+id/radioButtonBoth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Both" />
+                android:text="Both"
+                android:textStyle="bold" />
 
         </RadioGroup>
 
