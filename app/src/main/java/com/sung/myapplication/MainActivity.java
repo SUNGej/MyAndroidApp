@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 MySharedPreferencesHelper.saveScreenSelected(MainActivity.this, screenSelected);
+                MySharedPreferencesHelper.saveRadioGroupState(MainActivity.this, radioGroupCheckedId);
                 if (isImageSet) {
                     WallpaperUtils.changeWallpaper(imageBitmap, screenSelected, getApplicationContext());
                 } else {
@@ -134,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
         radioGroupSelectScreen.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
+                radioGroupCheckedId = checkedId;
+
                 if (checkedId == radioButtonHome.getId()) {
                     screenSelected = "Home";
                 } else if (checkedId == radioButtonLock.getId()) {
@@ -141,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
                 } else if (checkedId == radioButtonBoth.getId()) {
                     screenSelected = "Both";
                 }
-                Log.d("Main", "screenSelected : "+screenSelected);
             }
         });
     }
@@ -153,11 +155,11 @@ public class MainActivity extends AppCompatActivity {
             imageUris = MySharedPreferencesHelper.loadImageUris(this);
             isSwitchOn = MySharedPreferencesHelper.loadSwitchState(this);
             switchDailyWallpaper.setChecked(isSwitchOn);
-            radioGroupCheckedId = MySharedPreferencesHelper.loadRadioGroupState(this);
             setRadioButtonsClickable(!isSwitchOn);
         }
         setSwitchDailyWallpaperClickable();
         screenSelected = MySharedPreferencesHelper.loadScreenSelected(this);
+        radioGroupCheckedId = MySharedPreferencesHelper.loadRadioGroupState(this);
         setRadioGroupSelectScreenState();
     }
 

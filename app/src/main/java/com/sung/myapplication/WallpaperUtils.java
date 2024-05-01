@@ -21,16 +21,12 @@ public class WallpaperUtils {
 
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
         try {
-            Log.d("WallpaperUtils", "screenSelected : "+screenSelected);
             if (screenSelected.equals("Home")) {
                 wallpaperManager.setBitmap(finalBitmap, null, false, WallpaperManager.FLAG_SYSTEM);
-                Log.d("WallpaperUtils", "changeWallpaper() Home");
             } else if (screenSelected.equals("Lock")) {
                 wallpaperManager.setBitmap(finalBitmap, null, false, WallpaperManager.FLAG_LOCK);
-                Log.d("WallpaperUtils", "changeWallpaper() Lock");
             } else {
                 wallpaperManager.setBitmap(finalBitmap);
-                Log.d("WallpaperUtils", "changeWallpaper() Both");
             }
         } catch (IOException e) {
             e.printStackTrace();
