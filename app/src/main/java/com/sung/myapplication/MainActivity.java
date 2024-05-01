@@ -4,12 +4,17 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
     TextView textViewSelectedDirectory;
     ImageView imageViewSelectedImage;
     Switch switchDailyWallpaper;
+    RadioGroup radioGroupSelectScreen;
+    RadioButton radioButtonHome;
+    RadioButton radioButtonLock;
+    RadioButton radioButtonBoth;
     Bitmap imageBitmap = null;
     DocumentFile directorySelected = null;
     ArrayList<DocumentFile> imageFiles = null;
@@ -44,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
     boolean isImageSet = false;
     boolean isSwitchOn = false;
+    int radioGroupCheckedId = -1;
+    String screenSelected = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +69,10 @@ public class MainActivity extends AppCompatActivity {
         imageViewSelectedImage = findViewById(R.id.imageViewSelectedImage);
         switchDailyWallpaper = findViewById(R.id.switchDailyWallpaper);
         switchDailyWallpaper.setClickable(false);
+        radioGroupSelectScreen = findViewById(R.id.radioGroupSelectScreen);
+        radioButtonHome = findViewById(R.id.radioButtonHome);
+        radioButtonLock = findViewById(R.id.radioButtonLock);
+        radioButtonBoth = findViewById(R.id.radioButtonBoth);
 
         loadData();
 
@@ -81,8 +96,10 @@ public class MainActivity extends AppCompatActivity {
         buttonChangeWallpaper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MySharedPreferencesHelper.saveScreenSelected(MainActivity.this, screenSelected);
+                MySharedPreferencesHelper.saveRadioGroupState(MainActivity.this, radioGroupCheckedId);
                 if (isImageSet) {
-                    WallpaperUtils.changeWallpaper(imageBitmap, getApplicationContext());
+                    WallpaperUtils.changeWallpaper(imageBitmap, screenSelected, getApplicationContext());
                 } else {
                     Toast.makeText(MainActivity.this, "!!Select Image first!!", Toast.LENGTH_SHORT).show();
                     return;
@@ -114,6 +131,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        radioGroupSelectScreen.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                radioGroupCheckedId = checkedId;
+
+                if (checkedId == radioButtonHome.getId()) {
+                    screenSelected = "Home";
+                } else if (checkedId == radioButtonLock.getId()) {
+                    screenSelected = "Lock";
+                } else if (checkedId == radioButtonBoth.getId()) {
+                    screenSelected = "Both";
+                }
+            }
+        });
     }
 
     public void loadData() {
@@ -123,7 +155,12 @@ public class MainActivity extends AppCompatActivity {
             imageUris = MySharedPreferencesHelper.loadImageUris(this);
             isSwitchOn = MySharedPreferencesHelper.loadSwitchState(this);
             switchDailyWallpaper.setChecked(isSwitchOn);
+            setRadioButtonsClickable(!isSwitchOn);
         }
+        setSwitchDailyWallpaperClickable();
+        screenSelected = MySharedPreferencesHelper.loadScreenSelected(this);
+        radioGroupCheckedId = MySharedPreferencesHelper.loadRadioGroupState(this);
+        setRadioGroupSelectScreenState();
     }
 
     @Override
@@ -188,6 +225,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void scheduleWallpaperChange() {
+        MySharedPreferencesHelper.saveScreenSelected(this, screenSelected);
+        MySharedPreferencesHelper.saveRadioGroupState(this, radioGroupSelectScreen.getCheckedRadioButtonId());
+        setRadioButtonsClickable(false);
+
         PeriodicWorkRequest changeWallpaperRequest =
                 new PeriodicWorkRequest.Builder(ChangeWallpaperWorker.class, 1, TimeUnit.DAYS)
                         .setInitialDelay(calculateInitialDelay(), TimeUnit.MILLISECONDS)
@@ -200,6 +241,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void cancelWallpaperChange() {
         WorkManager.getInstance(this).cancelUniqueWork("myDailyWallpaper");
+
+        MySharedPreferencesHelper.saveSwitchState(this, false);
+        setRadioButtonsClickable(true);
 
         Toast.makeText(this, "Daily Wallpaper Cancelled.", Toast.LENGTH_SHORT).show();
     }
@@ -226,8 +270,35 @@ public class MainActivity extends AppCompatActivity {
     public void setSwitchDailyWallpaperClickable() {
         if (imageUris == null) {
             switchDailyWallpaper.setClickable(false);
-        } else if (imageUris.size() > 0) {
+            switchDailyWallpaper.setTextColor(Color.GRAY);
+        } else {
             switchDailyWallpaper.setClickable(true);
+            switchDailyWallpaper.setTextColor(Color.BLACK);
+        }
+    }
+
+    public void setRadioGroupSelectScreenState() {
+        if (radioGroupCheckedId == radioButtonHome.getId()) {
+            radioButtonHome.setChecked(true);
+        } else if (radioGroupCheckedId == radioButtonLock.getId()) {
+            radioButtonLock.setChecked(true);
+        } else if (radioGroupCheckedId == radioButtonBoth.getId() || radioGroupCheckedId == -1) {
+            radioButtonBoth.setChecked(true);
+        }
+    }
+
+    public void setRadioButtonsClickable(boolean clickable) {
+        radioButtonHome.setClickable(clickable);
+        radioButtonLock.setClickable(clickable);
+        radioButtonBoth.setClickable(clickable);
+        if (clickable) {
+            radioButtonHome.setTextColor(Color.BLACK);
+            radioButtonLock.setTextColor(Color.BLACK);
+            radioButtonBoth.setTextColor(Color.BLACK);
+        } else {
+            radioButtonHome.setTextColor(Color.GRAY);
+            radioButtonLock.setTextColor(Color.GRAY);
+            radioButtonBoth.setTextColor(Color.GRAY);
         }
     }
 }
