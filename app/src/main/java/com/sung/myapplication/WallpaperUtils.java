@@ -6,19 +6,32 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.WindowManager;
+
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 
 public class WallpaperUtils {
 
-    public static void changeWallpaper(Bitmap imageBitmap, Context context) {
+    public static void changeWallpaper(Bitmap imageBitmap, String screenSelected, Context context) {
         Bitmap scaledBitmap = scaleBitmapToDisplay(imageBitmap, context);
         Bitmap finalBitmap = addPaddingToBitmap(scaledBitmap, context);
 
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
         try {
-            wallpaperManager.setBitmap(finalBitmap);
+            Log.d("WallpaperUtils", "screenSelected : "+screenSelected);
+            if (screenSelected.equals("Home")) {
+                wallpaperManager.setBitmap(finalBitmap, null, false, WallpaperManager.FLAG_SYSTEM);
+                Log.d("WallpaperUtils", "changeWallpaper() Home");
+            } else if (screenSelected.equals("Lock")) {
+                wallpaperManager.setBitmap(finalBitmap, null, false, WallpaperManager.FLAG_LOCK);
+                Log.d("WallpaperUtils", "changeWallpaper() Lock");
+            } else {
+                wallpaperManager.setBitmap(finalBitmap);
+                Log.d("WallpaperUtils", "changeWallpaper() Both");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

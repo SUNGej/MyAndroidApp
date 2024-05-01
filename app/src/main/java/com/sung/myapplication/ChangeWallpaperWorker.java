@@ -24,6 +24,8 @@ public class ChangeWallpaperWorker extends Worker {
     @Override
     public Result doWork() {
         ArrayList<Uri> imageUris = MySharedPreferencesHelper.loadImageUris(getApplicationContext());
+        String screenSelected = MySharedPreferencesHelper.loadScreenSelected(getApplicationContext());
+
         if (imageUris == null || imageUris.isEmpty()) {
             Log.e("WallpaperWorker", "No images available");
             return Result.failure();
@@ -35,7 +37,7 @@ public class ChangeWallpaperWorker extends Worker {
         try {
             InputStream inputStream = getApplicationContext().getContentResolver().openInputStream(selectedImageUri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            WallpaperUtils.changeWallpaper(bitmap, getApplicationContext());
+            WallpaperUtils.changeWallpaper(bitmap, screenSelected, getApplicationContext());
             Log.d("WallpaperWorker", "Wallpaper changed");
             inputStream.close();
             return Result.success();

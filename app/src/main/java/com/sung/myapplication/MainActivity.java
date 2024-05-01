@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     boolean isImageSet = false;
     boolean isSwitchOn = false;
     int radioGroupCheckedId = -1;
+    String screenSelected = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,8 +96,9 @@ public class MainActivity extends AppCompatActivity {
         buttonChangeWallpaper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MySharedPreferencesHelper.saveScreenSelected(MainActivity.this, screenSelected);
                 if (isImageSet) {
-                    WallpaperUtils.changeWallpaper(imageBitmap, getApplicationContext());
+                    WallpaperUtils.changeWallpaper(imageBitmap, screenSelected, getApplicationContext());
                 } else {
                     Toast.makeText(MainActivity.this, "!!Select Image first!!", Toast.LENGTH_SHORT).show();
                     return;
@@ -128,6 +130,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        radioGroupSelectScreen.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId == radioButtonHome.getId()) {
+                    screenSelected = "Home";
+                } else if (checkedId == radioButtonLock.getId()) {
+                    screenSelected = "Lock";
+                } else if (checkedId == radioButtonBoth.getId()) {
+                    screenSelected = "Both";
+                }
+                Log.d("Main", "screenSelected : "+screenSelected);
+            }
+        });
     }
 
     public void loadData() {
@@ -141,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
             setRadioButtonsClickable(!isSwitchOn);
         }
         setSwitchDailyWallpaperClickable();
+        screenSelected = MySharedPreferencesHelper.loadScreenSelected(this);
         setRadioGroupSelectScreenState();
     }
 
@@ -206,15 +223,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void scheduleWallpaperChange() {
+        MySharedPreferencesHelper.saveScreenSelected(this, screenSelected);
+        MySharedPreferencesHelper.saveRadioGroupState(this, radioGroupSelectScreen.getCheckedRadioButtonId());
+        setRadioButtonsClickable(false);
+
         PeriodicWorkRequest changeWallpaperRequest =
                 new PeriodicWorkRequest.Builder(ChangeWallpaperWorker.class, 1, TimeUnit.DAYS)
                         .setInitialDelay(calculateInitialDelay(), TimeUnit.MILLISECONDS)
                         .build();
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork("myDailyWallpaper", ExistingPeriodicWorkPolicy.UPDATE, changeWallpaperRequest);
-
-        MySharedPreferencesHelper.saveRadioGroupState(this, radioGroupSelectScreen.getCheckedRadioButtonId());
-        setRadioButtonsClickable(false);
 
         Toast.makeText(this, "Daily Wallpaper Activated!", Toast.LENGTH_SHORT).show();
     }
