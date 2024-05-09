@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     DocumentFile directorySelected = null;
     ArrayList<DocumentFile> imageFiles = null;
     ArrayList<Uri> imageUris = null;
+    Uri currentImageUri = null;
 
     boolean isImageSet = false;
     boolean isSwitchOn = false;
@@ -209,6 +210,19 @@ public class MainActivity extends AppCompatActivity {
         Random random = new Random();
         int randomIndex = random.nextInt(imageUris.size());
         Uri fileUri = imageUris.get(randomIndex);
+
+        if (imageUris.size() == 1) {
+            Toast.makeText(this, "There is only 1 image", Toast.LENGTH_SHORT).show();
+        } else {
+            int count = 0;
+            while (fileUri.equals(currentImageUri)) {
+                Log.d("Main", "selection repeated : "+fileUri.toString()+
+                        "\n  reselect : "+ ++count);
+                randomIndex = random.nextInt(imageUris.size());
+                fileUri = imageUris.get(randomIndex);
+            }
+        }
+        currentImageUri = fileUri;
 
         ContentResolver resolver = getContentResolver();
         try {

@@ -12,6 +12,7 @@ public class MySharedPreferencesHelper {
     private static final String PREF_KEY_SWITCH_STATE = "SwitchState";
     private static final String PREF_RADIO_GROUP_STATE = "RadioGroupState";
     private static final String PREF_SCREEN_SELECTED = "ScreenSelected";
+    private static final String PREF_CURRENT_WALLPAPER_URI = "CurrentWallpaperUri";
 
     public static void saveSelectedDirectoryUri(Context context, Uri folderUri) {
         SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -94,5 +95,22 @@ public class MySharedPreferencesHelper {
         SharedPreferences.Editor editor = prefs.edit();
         editor.clear();
         editor.apply();
+    }
+
+    public static void saveCurrnetWallpaperUri(Context context, Uri imageUri) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PREF_CURRENT_WALLPAPER_URI, imageUri.toString());
+        editor.apply();
+    }
+
+    public static Uri loadCurrentWallpaperUri(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        String currentWallpaperUriString = prefs.getString(PREF_CURRENT_WALLPAPER_URI, null);
+        if (currentWallpaperUriString != null) {
+            return Uri.parse(currentWallpaperUriString);
+        } else {
+            return null;
+        }
     }
 }
