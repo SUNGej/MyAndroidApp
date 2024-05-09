@@ -36,9 +36,7 @@ public class ChangeWallpaperWorker extends Worker {
         int randomIndex = random.nextInt(imageUris.size());
         Uri selectedImageUri = imageUris.get(randomIndex);
 
-        if (imageUris.size() == 1) {
-            Log.d("AAAAAA", "imageUris.size() : "+imageUris.size());
-        } else {
+        if (imageUris.size() > 1) {
             int count = 0;
             while (selectedImageUri.equals(currentWallpaperUri)) {
                 Log.d("ChangeWallpaperWorker", "selection repeated : "+selectedImageUri.toString()+

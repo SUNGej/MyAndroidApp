@@ -212,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
         Uri fileUri = imageUris.get(randomIndex);
 
         if (imageUris.size() == 1) {
-            Log.d("AAAAAA", "imageUris.size() : "+imageUris.size());
+            Toast.makeText(this, "There is only 1 image", Toast.LENGTH_SHORT).show();
         } else {
             int count = 0;
             while (fileUri.equals(currentImageUri)) {
