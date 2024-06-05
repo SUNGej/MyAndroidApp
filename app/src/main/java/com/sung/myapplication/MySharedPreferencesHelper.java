@@ -13,6 +13,7 @@ public class MySharedPreferencesHelper {
     private static final String PREF_RADIO_GROUP_STATE = "RadioGroupState";
     private static final String PREF_SCREEN_SELECTED = "ScreenSelected";
     private static final String PREF_CURRENT_WALLPAPER_URI = "CurrentWallpaperUri";
+    private static final String PREF_CURRENT_INDEX = "CurrentIndex";
 
     public static void saveSelectedDirectoryUri(Context context, Uri folderUri) {
         SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -112,5 +113,17 @@ public class MySharedPreferencesHelper {
         } else {
             return null;
         }
+    }
+
+    public static void saveCurrentIndex(Context context, int index) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(PREF_CURRENT_INDEX, index);
+        editor.apply();
+    }
+
+    public static int loadCurrentIndex(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        return prefs.getInt(PREF_CURRENT_INDEX, -1);
     }
 }
