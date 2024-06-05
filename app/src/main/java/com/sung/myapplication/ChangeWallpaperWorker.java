@@ -12,7 +12,6 @@ import androidx.work.WorkerParameters;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class ChangeWallpaperWorker extends Worker {
 
@@ -26,34 +25,34 @@ public class ChangeWallpaperWorker extends Worker {
         ArrayList<Uri> imageUris = MySharedPreferencesHelper.loadImageUris(getApplicationContext());
         String screenSelected = MySharedPreferencesHelper.loadScreenSelected(getApplicationContext());
         Uri currentWallpaperUri = MySharedPreferencesHelper.loadCurrentWallpaperUri(getApplicationContext());
+        int currentIndex = MySharedPreferencesHelper.loadCurrentIndex(getApplicationContext());
 
         if (imageUris == null || imageUris.isEmpty()) {
             Log.e("WallpaperWorker", "No images available");
             return Result.failure();
         }
 
-        Random random = new Random();
-        int randomIndex = random.nextInt(imageUris.size());
-        Uri selectedImageUri = imageUris.get(randomIndex);
+        currentIndex++;
+        if (currentIndex >= imageUris.size()) {
+            currentIndex = 0;
+        }
+        Uri selectedImageUri = imageUris.get(currentIndex);
 
-        if (imageUris.size() > 1) {
-            int count = 0;
-            while (selectedImageUri.equals(currentWallpaperUri)) {
-                Log.d("ChangeWallpaperWorker", "selection repeated : "+selectedImageUri.toString()+
-                        "\n  reselect : "+ ++count);
-                randomIndex = random.nextInt(imageUris.size());
-                selectedImageUri = imageUris.get(randomIndex);
+        if (imageUris.size() >= 2) {
+            if (selectedImageUri.equals(currentWallpaperUri)) {
+                currentIndex++;
+                selectedImageUri = imageUris.get(currentIndex);
             }
         }
-        MySharedPreferencesHelper.saveCurrnetWallpaperUri(getApplicationContext(), selectedImageUri);
 
         try {
             InputStream inputStream = getApplicationContext().getContentResolver().openInputStream(selectedImageUri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             WallpaperUtils.changeWallpaper(bitmap, screenSelected, getApplicationContext());
             Log.d("WallpaperWorker", "Wallpaper changed");
-            MySharedPreferencesHelper.saveCurrnetWallpaperUri(getApplicationContext(), selectedImageUri);
             inputStream.close();
+            MySharedPreferencesHelper.saveCurrnetWallpaperUri(getApplicationContext(), selectedImageUri);
+            MySharedPreferencesHelper.saveCurrentIndex(getApplicationContext(), currentIndex);
             return Result.success();
         } catch (Exception e) {
             Log.e("WallpaperWorker", "Error setting wallpaper", e);

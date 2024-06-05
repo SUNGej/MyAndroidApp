@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
@@ -26,19 +25,21 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     Button buttonSelectImage;
+    Button buttonShuffle;
     Button buttonChangeWallpaper;
-    Button buttonSelectRandom;
     Button buttonReset;
+    Button buttonPrev;
+    Button buttonNext;
     TextView textViewSelectedDirectory;
     ImageView imageViewSelectedImage;
     Switch switchDailyWallpaper;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     boolean isImageSet = false;
     boolean isSwitchOn = false;
     int radioGroupCheckedId = -1;
+    int currentIndex;
     String screenSelected = null;
 
     @Override
@@ -63,9 +65,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         buttonSelectImage = findViewById(R.id.buttonSelectImage);
-        buttonSelectRandom = findViewById(R.id.buttonSelectRandom);
+        buttonShuffle = findViewById(R.id.buttonShuffle);
         buttonChangeWallpaper = findViewById(R.id.buttonChangeWallpaper);
         buttonReset = findViewById(R.id.buttonReset);
+        buttonPrev = findViewById(R.id.buttonPrev);
+        buttonNext = findViewById(R.id.buttonNext);
         textViewSelectedDirectory = findViewById(R.id.textViewSelectedDirectory);
         imageViewSelectedImage = findViewById(R.id.imageViewSelectedImage);
         switchDailyWallpaper = findViewById(R.id.switchDailyWallpaper);
@@ -83,24 +87,29 @@ public class MainActivity extends AppCompatActivity {
                 selectDirectory();
             }
         });
-        buttonSelectRandom.setOnClickListener(new View.OnClickListener() {
+        buttonShuffle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (imageUris != null && !imageUris.isEmpty()) {
-                    selectRandom(imageUris);
+                if (imageUris == null) {
+                    Toast.makeText(MainActivity.this, "!!Select Directory First!!", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(MainActivity.this, "!!Select directory contains Image file!!", Toast.LENGTH_SHORT).show();
+                    shuffleImageList(imageUris);
                 }
             }
         });
         buttonChangeWallpaper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MySharedPreferencesHelper.saveScreenSelected(MainActivity.this, screenSelected);
-                MySharedPreferencesHelper.saveRadioGroupState(MainActivity.this, radioGroupCheckedId);
                 if (isImageSet) {
                     WallpaperUtils.changeWallpaper(imageBitmap, screenSelected, getApplicationContext());
+                    MySharedPreferencesHelper.saveCurrentIndex(MainActivity.this, currentIndex);
+                    MySharedPreferencesHelper.saveScreenSelected(MainActivity.this, screenSelected);
+                    MySharedPreferencesHelper.saveRadioGroupState(MainActivity.this, radioGroupCheckedId);
+                    MySharedPreferencesHelper.saveCurrnetWallpaperUri(MainActivity.this, currentImageUri);
                 } else {
+                    if (directorySelected == null) {
+                        Toast.makeText(MainActivity.this, "!!Select Directory first!!", Toast.LENGTH_SHORT).show();
+                    }
                     Toast.makeText(MainActivity.this, "!!Select Image first!!", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -117,6 +126,38 @@ public class MainActivity extends AppCompatActivity {
                     resetData();
                     Toast.makeText(MainActivity.this, "Selection reset", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+        buttonPrev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (directorySelected == null) {
+                    return;
+                } else if (imageUris != null && imageUris.size() <= 1) {
+                    return;
+                }
+                currentIndex--;
+                if (currentIndex < 0) {
+                    currentIndex = imageUris.size() - 1;
+                }
+                setImageView(imageUris, currentIndex);
+                currentImageUri = imageUris.get(currentIndex);
+            }
+        });
+        buttonNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (directorySelected == null) {
+                    return;
+                } else if (imageUris != null && imageUris.size() <= 1) {
+                    return;
+                }
+                currentIndex++;
+                if (currentIndex >= imageUris.size()) {
+                    currentIndex = 0;
+                }
+                setImageView(imageUris, currentIndex);
+                currentImageUri = imageUris.get(currentIndex);
             }
         });
 
@@ -161,6 +202,10 @@ public class MainActivity extends AppCompatActivity {
         screenSelected = MySharedPreferencesHelper.loadScreenSelected(this);
         radioGroupCheckedId = MySharedPreferencesHelper.loadRadioGroupState(this);
         setRadioGroupSelectScreenState();
+        currentIndex = MySharedPreferencesHelper.loadCurrentIndex(this);
+        if (currentIndex >= 0) {
+            setImageView(imageUris, currentIndex);
+        }
     }
 
     @Override
@@ -190,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < imageFiles.size(); i++) {
             imageUris.add(imageFiles.get(i).getUri());
         }
+        imageViewSelectedImage.setImageResource(R.drawable.ic_launcher_foreground);
         setSwitchDailyWallpaperClickable();
 
         MySharedPreferencesHelper.saveSelectedDirectoryUri(MainActivity.this, directorySelected.getUri());
@@ -237,6 +283,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void setImageView(ArrayList<Uri> imageUris, int index) {
+        ContentResolver resolver = getContentResolver();
+        try {
+            InputStream inputStream = resolver.openInputStream(imageUris.get(index));
+            imageBitmap = BitmapFactory.decodeStream(inputStream);
+            imageViewSelectedImage.setImageBitmap(imageBitmap);
+            isImageSet = true;
+
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void shuffleImageList(ArrayList<Uri> imageUris) {
+        if (imageUris.size() >= 1) {
+            if (imageUris.size() >= 2) {
+                Collections.shuffle(imageUris, new Random(System.currentTimeMillis()));
+                Toast.makeText(this, imageUris.size()+" Images Shuffled.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Only 1 image file exists", Toast.LENGTH_SHORT).show();
+            }
+            imageViewSelectedImage.setImageResource(R.drawable.ic_launcher_foreground);
+            isImageSet = false;
+            currentIndex = -1;
+            MySharedPreferencesHelper.saveImageUris(this, imageUris);
+            MySharedPreferencesHelper.saveCurrentIndex(this, currentIndex);
+        } else {
+            Toast.makeText(this, "!!No image file!!\nSelect directory contains image file", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void scheduleWallpaperChange() {
         MySharedPreferencesHelper.saveScreenSelected(this, screenSelected);
         MySharedPreferencesHelper.saveRadioGroupState(this, radioGroupSelectScreen.getCheckedRadioButtonId());
@@ -281,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setSwitchDailyWallpaperClickable() {
-        if (imageUris == null) {
+        if (imageUris == null || imageUris.size() == 0) {
             switchDailyWallpaper.setClickable(false);
             switchDailyWallpaper.setTextColor(Color.GRAY);
         } else {
